@@ -1,4 +1,7 @@
 This small package is intended to allow printing colored text for console application.
+
+![What you will see from the console:](Sample.png)
+
 It is cross-platform and all the functionalities are contained into this single [header](./src/ColoredStream/ColoredStream.hpp) file.
 
 METTERE che stream creati non sono colorati se mandati su file testuali
