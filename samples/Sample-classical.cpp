@@ -26,8 +26,8 @@ int main() {
 
   {
     std::ofstream stream("temp.txt");
-    stream << ClassicColoredStream{RED, "This should NOT be ", "RED"} << " done"
-           << std::endl;
+    stream << ClassicColoredStream{RED, "This should contain only plain text"}
+           << " done" << std::endl;
   }
 
   return EXIT_SUCCESS;
