@@ -41,7 +41,11 @@ std::cout << colored_content << std::endl;
 ... or, you can pass a variadic number of inputs in order to build the object in place:
 
 ```cpp
-std::cout << ClassicColoredStream{"Hello ", "World ", " :-)"} << std::endl;
+std::cout << ClassicColoredStream{BLUE,"Hello ", "World ", " :-)"} << std::endl;
 ```
 
 ![temp](pictures/part03.png)
+
+## CMAKE SUPPORT
+
+METTERE spiegare
