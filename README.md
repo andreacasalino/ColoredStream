@@ -1,6 +1,7 @@
 This small package is intended to allow printing colored text for console application.
 
-![What you will see from the console:](Sample.png)
+What you will see from the console:
+![temp](pictures/Sample.png)
 
 It is cross-platform and all the functionalities are contained into this single [header](./src/ColoredStream/ColoredStream.hpp) file.
 
@@ -19,6 +20,9 @@ using namespace colored_stream;
 
 std::cout << ClassicColoredStream{RED, "Hello world"} << std::endl;
 ```
+
+![temp](pictures/part01.png)
+
 and that's it!
 
 You can create an empty ColoredStream instance, whose content is created step by step before printing:
@@ -32,8 +36,12 @@ colored_content << " :-)";
 std::cout << colored_content << std::endl;
 ```
 
+![temp](pictures/part02.png)
+
 ... or, you can pass a variadic number of inputs in order to build the object in place:
 
 ```cpp
 std::cout << ClassicColoredStream{"Hello ", "World ", " :-)"} << std::endl;
 ```
+
+![temp](pictures/part03.png)
