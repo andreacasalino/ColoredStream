@@ -1,7 +1,9 @@
 This small package is intended to allow printing **colored** text for **C++** console application.
-Before doing anything else, leave a star to this project ;).
+
+Before doing anything else, leave a **star** to this project ;).
 
 What you would see from the console using this package:
+
 ![temp](pictures/Sample.png)
 
 It is cross-platform and all the functionalities are contained in [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp).
