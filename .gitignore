@@ -1,0 +1,7 @@
+build
+.vscode
+TODO
+install
+cmake-build-*
+.idea
+
