@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <optional>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -10,44 +11,38 @@
 
 namespace colored_stream {
 /// context:
-/// https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
+/// https://en.wikipedia.org/wiki/ANSI_escape_code
 
 enum ClassicColor { RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE };
 
-struct ASCIIColorCode {
-  char code;
+struct Uint8Color {
+  std::uint8_t code;
 };
 
-using Color = std::variant<ClassicColor, ASCIIColorCode>;
+struct Uint24Color {
+  std::uint8_t red;
+  std::uint8_t green;
+  std::uint8_t blue;
+};
+
+using Color = std::variant<ClassicColor, Uint8Color, Uint24Color>;
 
 class ColoredStream : public std::stringstream {
 public:
-  ColoredStream(const Color &color) : color(color){};
+  ColoredStream(const Color &text_color) : text(text_color){};
 
   template <typename T, typename... Args>
-  ColoredStream(const Color &color, const T &element, const Args &...arsg)
-      : ColoredStream(color) {
+  ColoredStream(const Color &text_color, const T &element, const Args &...arsg)
+      : ColoredStream(text_color) {
     this->add(element, arsg...);
   }
 
+  void setBackground(const Color &color) { background.emplace(color); };
+
   void print(std::ostream &stream) const {
     if (static_cast<const std::ostream *>(&std::cout) == &stream) {
-      struct ColorVisitor {
-        std::ostream &stream;
-
-        void operator()(const ClassicColor &color) {
-          auto table_it = CLASSIC_COLORS_TABLE.find(color);
-          if (table_it == CLASSIC_COLORS_TABLE.end()) {
-            throw std::runtime_error{"Invalid color"};
-          }
-          stream << table_it->second;
-        }
-        void operator()(const ASCIIColorCode &color) {
-          stream << CUSTOM_COLOR_PREAMBLE << color.code << 'm';
-        }
-      };
-      std::visit(ColorVisitor{stream}, this->color);
-
+      this->addColorText(stream);
+      this->addColorBackground(stream);
       stream << this->str();
       stream << RESETTER;
       return;
@@ -70,7 +65,53 @@ protected:
   template <typename T> void add(const T &element) { *this << element; };
 
 private:
-  const Color color;
+  void addColorText(std::ostream &stream) const {
+    struct ColorVisitor {
+      std::ostream &stream;
+
+      void operator()(const ClassicColor &color) {
+        auto table_it = CLASSIC_COLORS_TABLE.find(color);
+        if (table_it == CLASSIC_COLORS_TABLE.end()) {
+          throw std::runtime_error{"Invalid color"};
+        }
+        stream << table_it->second;
+      }
+      void operator()(const Uint8Color &color) {
+        stream << "\u001b[38;5;" << std::to_string(color.code) << 'm';
+      }
+      void operator()(const Uint24Color &color) {
+        stream << "\u001b[38;2;" << std::to_string(color.red) << ';'
+               << std::to_string(color.green) << ';'
+               << std::to_string(color.blue) << 'm';
+      }
+    };
+    std::visit(ColorVisitor{stream}, this->text);
+  };
+
+  void addColorBackground(std::ostream &stream) const {
+    if (std::nullopt == this->background) {
+      return;
+    }
+    struct ColorVisitor {
+      std::ostream &stream;
+
+      void operator()(const ClassicColor &color) {
+        throw std::runtime_error{"Invalid color"};
+      }
+      void operator()(const Uint8Color &color) {
+        stream << "\u001b[48;5;" << std::to_string(color.code) << 'm';
+      }
+      void operator()(const Uint24Color &color) {
+        stream << "\u001b[48;2;" << std::to_string(color.red) << ';'
+               << std::to_string(color.green) << ';'
+               << std::to_string(color.blue) << 'm';
+      }
+    };
+    std::visit(ColorVisitor{stream}, *this->background);
+  };
+
+  const Color text;
+  std::optional<const Color> background;
 };
 
 const std::string ColoredStream::RESETTER = "\u001b[0m";
@@ -82,8 +123,6 @@ const std::map<ClassicColor, std::string> ColoredStream::CLASSIC_COLORS_TABLE =
         {MAGENTA, "\u001b[35;1m"}, {CYAN, "\u001b[36;1m"},
         {WHITE, "\u001b[37;1m"},
 };
-
-const std::string ColoredStream::CUSTOM_COLOR_PREAMBLE = "\u001b[38;5;";
 
 std::ostream &operator<<(std::ostream &stream, const ColoredStream &subject) {
   subject.print(stream);
