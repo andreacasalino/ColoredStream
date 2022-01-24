@@ -6,8 +6,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(ColoredStream)
 
-option(BUILD_SAMPLES "Build the samples" ON)
 
 add_subdirectory(src)
 
-add_subdirectory(samples)
+option(BUILD_COLORED_STREAM_SAMPLES "Build the samples" ON)
+if(BUILD_COLORED_STREAM_SAMPLES)
+    add_subdirectory(samples)
+endif()
