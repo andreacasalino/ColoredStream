@@ -17,8 +17,10 @@ Such ability is enabled when passing a **ColoredStream** instance to a **std::co
  - specify a [8-bit color](https://en.wikipedia.org/wiki/ANSI_escape_code) code 
  - specify a [R,G,B](https://en.wikipedia.org/wiki/ANSI_escape_code) triplet 
 
-With **ColoredStream** is also able to apply a background color:
+**ColoredStream** is also able to apply a specific background color:
 ![temp](pictures/part04.png)
+
+The kind of color used for specifying the text (R,G,B triplet, 8-bit code, etc...) can be different from the one used for the background.
 
 ## EXAMPLES
 
@@ -57,7 +59,7 @@ std::cout << ColoredStream{BLUE, "Hello ", "World ", " :-)"} << std::endl;
 
 ![temp](pictures/part03.png)
 
-You can also prescribe the background color of the text:
+You can also prescribe the background color:
 
 ```cpp
 ColoredStream stream{RED, "Hello World"};
@@ -70,9 +72,3 @@ std::cout << stream << std::endl;
 ## CMAKE SUPPORT
 
 You can fetch this package and link to the **ColoredStream** library, that is actually just a **INTERFACE** library exposing the position of [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp)
-
-## TO BE DONE FEATURES
-
-These features will be soon added:
- - allow the possibility to color also the background of the text
- - allow the possibility to specify the color using a **(r,g,b)** triplet.
