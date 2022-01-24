@@ -9,12 +9,16 @@ What you would see from the console using this package:
 It is cross-platform and all the functionalities are contained in [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp).
 
 The ability to show a colored text is made possible by building and printing a **ColoredStream** object.
-**ColoredStream** extends **std::stringstream** adding the poddibility to show colored text.
+**ColoredStream** extends **std::stringstream** adding the possibility to show colored text.
 Such ability is enabled when passing a **ColoredStream** instance to a **std::cout** for printing something into the console. On the opposite, when passing a **ColoredStream** instance to another kind of output stream, like for instance a **std::ofstream**, the object behaves like a normal **std::stringstream**, printing normal text.
 
-**ColoredStream** is able to handle 2 possible color prescription:
+**ColoredStream** is able to handle 3 possible color prescriptions:
  - specify classical colors like **red** or **yellow**
- - specify an [ASCII color](https://en.wikipedia.org/wiki/ANSI_escape_code) code 
+ - specify a [8-bit color](https://en.wikipedia.org/wiki/ANSI_escape_code) code 
+ - specify a [R,G,B](https://en.wikipedia.org/wiki/ANSI_escape_code) triplet 
+
+With **ColoredStream** is also able to apply a background color:
+![temp](pictures/part04.png)
 
 ## EXAMPLES
 
@@ -52,6 +56,16 @@ std::cout << ColoredStream{BLUE, "Hello ", "World ", " :-)"} << std::endl;
 ```
 
 ![temp](pictures/part03.png)
+
+You can also prescribe the background color of the text:
+
+```cpp
+ColoredStream stream{RED, "Hello World"};
+stream.setBackground(Uint8Color{11});
+std::cout << stream << std::endl;
+```
+
+![temp](pictures/part04.png)
 
 ## CMAKE SUPPORT
 

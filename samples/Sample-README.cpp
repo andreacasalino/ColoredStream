@@ -15,5 +15,11 @@ int main() {
 
   std::cout << ColoredStream{BLUE, "Hello ", "World ", " :-)"} << std::endl;
 
+  {
+    ColoredStream stream{RED, "Hello World"};
+    stream.setBackground(Uint8Color{11});
+    std::cout << stream << std::endl;
+  }
+
   return EXIT_SUCCESS;
 }
