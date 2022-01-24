@@ -20,8 +20,6 @@ struct ASCIIColorCode {
 
 using Color = std::variant<ClassicColor, ASCIIColorCode>;
 
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-
 class ColoredStream : public std::stringstream {
 public:
   ColoredStream(const Color &color) : color(color){};
