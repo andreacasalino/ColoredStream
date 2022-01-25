@@ -41,13 +41,16 @@ public:
 
   void print(std::ostream &stream) const {
     if (static_cast<const std::ostream *>(&std::cout) == &stream) {
-      this->addColorText(stream);
-      this->addColorBackground(stream);
-      stream << this->str();
-      stream << RESETTER;
+      this->toStream(stream);
       return;
     }
     stream << this->str();
+  };
+
+  std::string col_str() const {
+    std::stringstream result;
+    this->toStream(result);
+    return result.str();
   };
 
 protected:
@@ -65,6 +68,13 @@ protected:
   template <typename T> void add(const T &element) { *this << element; };
 
 private:
+  void toStream(std::ostream &stream) const {
+    this->addColorText(stream);
+    this->addColorBackground(stream);
+    stream << this->str();
+    stream << RESETTER;
+  }
+
   void addColorText(std::ostream &stream) const {
     struct ColorVisitor {
       std::ostream &stream;
