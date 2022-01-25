@@ -55,6 +55,12 @@ public:
 
 protected:
   static const std::string RESETTER;
+  static const std::string TEXT_UINT8_PREABLE;
+  static const std::string BCKGRND_UINT8_PREABLE;
+  static const std::string TEXT_UINT24_PREABLE;
+  static const std::string BCKGRND_UINT24_PREABLE;
+  static const char SEPARATOR;
+  static const char M_LETTER;
 
   static const std::map<ClassicColor, std::string> CLASSIC_COLORS_TABLE;
 
@@ -87,12 +93,12 @@ private:
         stream << table_it->second;
       }
       void operator()(const Uint8Color &color) {
-        stream << "\u001b[38;5;" << std::to_string(color.code) << 'm';
+        stream << TEXT_UINT8_PREABLE << std::to_string(color.code) << M_LETTER;
       }
       void operator()(const Uint24Color &color) {
-        stream << "\u001b[38;2;" << std::to_string(color.red) << ';'
-               << std::to_string(color.green) << ';'
-               << std::to_string(color.blue) << 'm';
+        stream << TEXT_UINT24_PREABLE << std::to_string(color.red) << SEPARATOR
+               << std::to_string(color.green) << SEPARATOR
+               << std::to_string(color.blue) << M_LETTER;
       }
     };
     std::visit(ColorVisitor{stream}, this->text);
@@ -109,12 +115,13 @@ private:
         throw std::runtime_error{"Invalid color"};
       }
       void operator()(const Uint8Color &color) {
-        stream << "\u001b[48;5;" << std::to_string(color.code) << 'm';
+        stream << BCKGRND_UINT8_PREABLE << std::to_string(color.code)
+               << M_LETTER;
       }
       void operator()(const Uint24Color &color) {
-        stream << "\u001b[48;2;" << std::to_string(color.red) << ';'
-               << std::to_string(color.green) << ';'
-               << std::to_string(color.blue) << 'm';
+        stream << BCKGRND_UINT24_PREABLE << std::to_string(color.red)
+               << SEPARATOR << std::to_string(color.green) << SEPARATOR
+               << std::to_string(color.blue) << M_LETTER;
       }
     };
     std::visit(ColorVisitor{stream}, *this->background);
@@ -125,6 +132,15 @@ private:
 };
 
 const std::string ColoredStream::RESETTER = "\u001b[0m";
+
+const std::string ColoredStream::TEXT_UINT8_PREABLE = "\u001b[38;5;";
+const std::string ColoredStream::BCKGRND_UINT8_PREABLE = "\u001b[48;5;";
+
+const std::string ColoredStream::TEXT_UINT24_PREABLE = "\u001b[38;2;";
+const std::string ColoredStream::BCKGRND_UINT24_PREABLE = "\u001b[48;2;";
+
+const char ColoredStream::SEPARATOR = ';';
+const char ColoredStream::M_LETTER = 'm';
 
 const std::map<ClassicColor, std::string> ColoredStream::CLASSIC_COLORS_TABLE =
     {
