@@ -24,6 +24,8 @@ The kind of color used for specifying the text (R,G,B triplet, 8-bit code, etc..
 
 ## EXAMPLES
 
+Still haven't left a **star**? Do it now!! ;).
+
 Using this package is straightforward: you just need to create a **ColoredStream** object and then pass it to std::cout for print it.
 Suppose for example you want to display a red colored hello world, all you need to do would be this:
 
