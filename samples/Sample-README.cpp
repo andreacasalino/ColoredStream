@@ -16,14 +16,13 @@ int main() {
   std::cout << ColoredStream{BLUE, "Hello ", "World ", " :-)"} << std::endl;
 
   {
-    ColoredStream stream_red{RED, "Hello World"};
-    stream_red.setBackground(Uint8Color{11});
+    ColoredStream stream1{RED, "Hello World"};
+    stream1.setBackground(Uint8Color{11});
 
-    ColoredStream stream_green{Uint24Color{0, 0, 0}, "Hello World"};
-    stream_green.setBackground(Uint24Color{247, 148, 244});
+    ColoredStream stream2{Uint24Color{0, 0, 0}, "Hello World"};
+    stream2.setBackground(Uint24Color{247, 148, 244});
 
-    std::cout << stream_red << " , " << stream_green << " back to normal"
-              << std::endl;
+    std::cout << stream1 << " , " << stream2 << " back to normal" << std::endl;
   }
 
   return EXIT_SUCCESS;
