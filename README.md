@@ -73,4 +73,21 @@ std::cout << stream << std::endl;
 
 ## CMAKE SUPPORT
 
-You can fetch this package and link to the **ColoredStream** library, that is actually just a **INTERFACE** library exposing the position of [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp)
+You can fetch this package and link to the **ColoredStream** library, that is actually just a **INTERFACE** library exposing the position of [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp):
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+colored_stream
+GIT_REPOSITORY https://github.com/andreacasalino/ColoredStream.git
+GIT_TAG        main
+)
+FetchContent_MakeAvailable(colored_stream)
+```
+and then link the **INTERFACE** library to the package that needs to consume it:
+
+```cmake
+target_link_libraries(${LIB_NAME}
+    ColoredStream
+)
+```
