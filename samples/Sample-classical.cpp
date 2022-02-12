@@ -1,5 +1,6 @@
 #include <ColoredStream/ColoredStream.h>
 #include <fstream>
+#include <iostream>
 using namespace colored_stream;
 
 int main() {

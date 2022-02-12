@@ -1,4 +1,5 @@
 #include <ColoredStream/ColoredStream.h>
+#include <iostream>
 #include <limits>
 #include <vector>
 using namespace colored_stream;
