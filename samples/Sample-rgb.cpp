@@ -1,4 +1,4 @@
-#include <ColoredStream/ColoredStream.hpp>
+#include <ColoredStream/ColoredStream.h>
 #include <vector>
 using namespace colored_stream;
 
