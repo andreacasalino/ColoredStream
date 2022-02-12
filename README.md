@@ -6,7 +6,7 @@ What you would see from the console using this package:
 
 ![temp](pictures/Sample.png)
 
-It is cross-platform and all the functionalities are contained in [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp).
+It is cross-platform and all the functionalities are contained in [**ColoredStream.h**](./src/ColoredStream/ColoredStream.h).
 
 The ability to show a colored text is made possible by building and printing a **ColoredStream** object.
 **ColoredStream** extends **std::stringstream** adding the possibility to show colored text.
@@ -30,7 +30,7 @@ Using this package is straightforward: you just need to create a **ColoredStream
 Suppose for example you want to display a red colored hello world, all you need to do would be this:
 
 ```cpp
-#include <ColoredStream/ColoredStream.hpp>
+#include <ColoredStream/ColoredStream.h>
 using namespace colored_stream;
 
 std::cout << ColoredStream{RED, "Hello world"} << std::endl;
@@ -73,7 +73,7 @@ std::cout << stream << std::endl;
 
 ## CMAKE SUPPORT
 
-You can fetch this package and link to the **ColoredStream** library, that is actually just a **INTERFACE** library exposing the position of [**ColoredStream.hpp**](./src/ColoredStream/ColoredStream.hpp):
+You can fetch this package and link to the **ColoredStream** library, that is actually just a **INTERFACE** library exposing the position of [**ColoredStream.h**](./src/ColoredStream/ColoredStream.h):
 
 ```cmake
 include(FetchContent)
