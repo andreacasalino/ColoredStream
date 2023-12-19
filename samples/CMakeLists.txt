@@ -12,3 +12,5 @@ MAKE_SAMPLE(Sample-classical)
 MAKE_SAMPLE(Sample-custom)
 
 MAKE_SAMPLE(Sample-rgb)
+
+MAKE_SAMPLE(Sample-stream)

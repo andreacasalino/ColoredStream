@@ -10,7 +10,7 @@ int main() {
   for (const auto &red : range) {
     for (const auto &green : range) {
       for (const auto &blue : range) {
-        std::cout << ColoredStream{Uint24Color{red, green, blue}, "Hello World"}
+        std::cout << ColoredText{Uint24Color{red, green, blue}, "Hello World"}
                   << " red uint8 code: " << std::to_string(red)
                   << " green uint8 code: " << std::to_string(green)
                   << " blue uint8 code: " << std::to_string(blue) << std::endl;

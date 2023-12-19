@@ -1,58 +1,35 @@
 #include <ColoredStream/ColoredStream.h>
-#include <iostream>
 #include <stdexcept>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace colored_stream {
-const std::string ColoredStream::RESETTER = "\u001b[0m";
+namespace {
+static const std::string TEXT_UINT8_PREABLE = "\u001b[38;5;";
+static const std::string BCKGRND_UINT8_PREABLE = "\u001b[48;5;";
 
-const std::string ColoredStream::TEXT_UINT8_PREABLE = "\u001b[38;5;";
-const std::string ColoredStream::BCKGRND_UINT8_PREABLE = "\u001b[48;5;";
+static const std::string TEXT_UINT24_PREABLE = "\u001b[38;2;";
+static const std::string BCKGRND_UINT24_PREABLE = "\u001b[48;2;";
 
-const std::string ColoredStream::TEXT_UINT24_PREABLE = "\u001b[38;2;";
-const std::string ColoredStream::BCKGRND_UINT24_PREABLE = "\u001b[48;2;";
+static const char SEPARATOR = ';';
+static const char M_LETTER = 'm';
 
-const char ColoredStream::SEPARATOR = ';';
-const char ColoredStream::M_LETTER = 'm';
-
-const std::map<ClassicColor, std::string> ColoredStream::CLASSIC_COLORS_TABLE =
-    {
-        {RED, "\u001b[31;1m"},     {GREEN, "\u001b[32;1m"},
-        {YELLOW, "\u001b[33;1m"},  {BLUE, "\u001b[34;1m"},
-        {MAGENTA, "\u001b[35;1m"}, {CYAN, "\u001b[36;1m"},
-        {WHITE, "\u001b[37;1m"},
+static const std::unordered_map<ClassicColor, std::string>
+    CLASSIC_COLORS_TABLE = {
+        {ClassicColor::RED, "\u001b[31;1m"},
+        {ClassicColor::GREEN, "\u001b[32;1m"},
+        {ClassicColor::YELLOW, "\u001b[33;1m"},
+        {ClassicColor::BLUE, "\u001b[34;1m"},
+        {ClassicColor::MAGENTA, "\u001b[35;1m"},
+        {ClassicColor::CYAN, "\u001b[36;1m"},
+        {ClassicColor::WHITE, "\u001b[37;1m"},
 };
 
-ColoredStream::ColoredStream(const Color &text_color) : text(text_color){};
-
-void ColoredStream::setBackground(const Color &color) {
-  background.emplace(color);
-};
-
-void ColoredStream::print(std::ostream &stream) const {
-  if (static_cast<const std::ostream *>(&std::cout) == &stream) {
-    this->toStream(stream);
-    return;
-  }
-  stream << this->str();
-};
-
-std::string ColoredStream::col_str() const {
-  std::stringstream result;
-  this->toStream(result);
-  return result.str();
-};
-
-void ColoredStream::toStream(std::ostream &stream) const {
-  this->addColorText(stream);
-  this->addColorBackground(stream);
-  stream << this->str();
-  stream << RESETTER;
-}
-
-void ColoredStream::addColorText(std::ostream &stream) const {
+void addColorText(std::ostream &stream, const ColorText &color) {
   struct ColorVisitor {
     std::ostream &stream;
 
+    void operator()(const Null &) {}
     void operator()(const ClassicColor &color) {
       auto table_it = CLASSIC_COLORS_TABLE.find(color);
       if (table_it == CLASSIC_COLORS_TABLE.end()) {
@@ -69,19 +46,14 @@ void ColoredStream::addColorText(std::ostream &stream) const {
              << std::to_string(color.blue) << M_LETTER;
     }
   };
-  std::visit(ColorVisitor{stream}, this->text);
+  std::visit(ColorVisitor{stream}, color);
 };
 
-void ColoredStream::addColorBackground(std::ostream &stream) const {
-  if (std::nullopt == this->background) {
-    return;
-  }
+void addColorBackground(std::ostream &stream, const ColorBackground &color) {
   struct ColorVisitor {
     std::ostream &stream;
 
-    void operator()(const ClassicColor &color) {
-      throw std::runtime_error{"Invalid color"};
-    }
+    void operator()(const Null &) {}
     void operator()(const Uint8Color &color) {
       stream << BCKGRND_UINT8_PREABLE << std::to_string(color.code) << M_LETTER;
     }
@@ -91,11 +63,80 @@ void ColoredStream::addColorBackground(std::ostream &stream) const {
              << std::to_string(color.blue) << M_LETTER;
     }
   };
-  std::visit(ColorVisitor{stream}, *this->background);
+  std::visit(ColorVisitor{stream}, color);
+};
+} // namespace
+
+std::ostream &operator<<(std::ostream &stream, const Colors &subject) {
+  addColorText(stream, subject.text);
+  addColorBackground(stream, subject.background);
+  return stream;
+}
+
+ColoredText::ColoredText(const Settings &settings) : colors{settings.colors} {};
+
+namespace {
+static const std::unordered_set<const std::ostream *>
+    STREAMS_SUPPORTING_COLORS = std::unordered_set<const std::ostream *>{
+        static_cast<const std::ostream *>(&std::cout),
+        static_cast<const std::ostream *>(&std::cerr)};
+}
+
+void ColoredText::print(std::ostream &stream) const {
+  if (STREAMS_SUPPORTING_COLORS.find(&stream) !=
+      STREAMS_SUPPORTING_COLORS.end()) {
+    stream << colors;
+    stream << this->str();
+    stream << RESETTER;
+    return;
+  }
+  stream << this->str();
 };
 
-std::ostream &operator<<(std::ostream &stream, const ColoredStream &subject) {
+std::ostream &operator<<(std::ostream &stream, const ColoredText &subject) {
   subject.print(stream);
   return stream;
 }
+
+ColoredStream::ColoredStream(const Settings &settings, std::ostream &recipient)
+    : wrapped_{recipient}, supportsColor{STREAMS_SUPPORTING_COLORS.find(
+                                             &recipient) !=
+                                         STREAMS_SUPPORTING_COLORS.end()},
+      colors{settings.colors} {}
+
+ColoredStream::ColoredStream(const ColorText &color, std::ostream &recipient)
+    : ColoredStream{Settings{}.text(color), recipient} {}
+
+#ifdef _WIN32
+ColoredStream &ColoredStream::operator<<(
+    std::ostream&(*__pf)(std::ostream&)) {
+  __pf(wrapped_);
+  return *this;
+}
+
+ColoredStream &ColoredStream::operator<<(
+    std::ostream::_Myios&(*__pf)(std::ostream::_Myios&)) {
+  __pf(wrapped_);
+  return *this;
+}
+#else
+ColoredStream& ColoredStream::operator<<(
+    std::ostream::__ostream_type& (*__pf)(std::ostream::__ostream_type&)) {
+    __pf(wrapped_);
+    return *this;
+}
+
+ColoredStream& ColoredStream::operator<<(
+    std::ostream::__ios_type& (*__pf)(std::ostream::__ios_type&)) {
+    __pf(wrapped_);
+    return *this;
+}
+#endif
+
+ColoredStream &ColoredStream::operator<<(
+    std::ostream::ios_base &(*__pf)(std::ostream::ios_base &)) {
+  __pf(wrapped_);
+  return *this;
+}
+
 } // namespace colored_stream
