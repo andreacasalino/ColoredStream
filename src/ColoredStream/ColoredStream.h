@@ -1,15 +1,16 @@
 #pragma once
 
-#include <optional>
+#include <iostream>
 #include <ostream>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 #include <variant>
 
 namespace colored_stream {
 /// context:
 /// https://en.wikipedia.org/wiki/ANSI_escape_code
+
+static const std::string RESETTER = "\u001b[0m";
 
 enum class ClassicColor { RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE };
 
@@ -28,20 +29,26 @@ struct Null {};
 using ColorText = std::variant<Null, ClassicColor, Uint8Color, Uint24Color>;
 using ColorBackground = std::variant<Null, Uint8Color, Uint24Color>;
 
+struct Colors {
+  ColorText text = Null{};
+  ColorBackground background = Null{};
+};
+
+std::ostream &operator<<(std::ostream &stream, const Colors &subject);
+
 struct Settings {
   Settings() = default;
 
   Settings &text(const ColorText &col) {
-    text_ = col;
+    colors.text = col;
     return *this;
   }
   Settings &background(const ColorBackground &col) {
-    background_ = col;
+    colors.background = col;
     return *this;
   }
 
-  ColorText text_ = Null{};
-  ColorBackground background_ = Null{};
+  Colors colors;
 };
 
 class ColoredText : public std::stringstream {
@@ -61,22 +68,7 @@ public:
 
   void print(std::ostream &stream) const;
 
-  std::string col_str() const;
-
 protected:
-  static const std::string RESETTER;
-  static const std::string TEXT_UINT8_PREABLE;
-  static const std::string BCKGRND_UINT8_PREABLE;
-  static const std::string TEXT_UINT24_PREABLE;
-  static const std::string BCKGRND_UINT24_PREABLE;
-  static const char SEPARATOR;
-  static const char M_LETTER;
-
-  static const std::unordered_map<ClassicColor, std::string>
-      CLASSIC_COLORS_TABLE;
-
-  static const std::string CUSTOM_COLOR_PREAMBLE;
-
   template <typename T, typename... Args>
   void add(const T &element, const Args &...args) {
     this->add(element);
@@ -85,15 +77,49 @@ protected:
   template <typename T> void add(const T &element) { *this << element; };
 
 private:
-  void toStream(std::ostream &stream) const;
-
-  void addColorText(std::ostream &stream) const;
-
-  void addColorBackground(std::ostream &stream) const;
-
-  const ColorText text;
-  const ColorBackground background;
+  const Colors colors;
 };
 
 std::ostream &operator<<(std::ostream &stream, const ColoredText &subject);
+
+// Wraps a concrete ostream so that every time something
+// is passed to this stream, the prefix, the content and the postfix needed to
+// render the content are actually propagated to the wrapped stream
+class ColoredStream {
+public:
+  ColoredStream(const Settings &settings, std::ostream &recipient = std::cout);
+
+  // background color assumed to Null
+  ColoredStream(const ColorText &color, std::ostream &recipient = std::cout);
+
+  template <typename T> ColoredStream &operator<<(T w) {
+    if (supportsColor) {
+      wrapped_ << colors;
+      wrapped_ << w;
+      wrapped_ << RESETTER;
+    } else {
+      wrapped_ << w;
+    }
+    return *this;
+  }
+
+#ifdef _WIN32
+  ColoredStream &operator<<(
+      std::ostream&(*__pf)(std::ostream&));
+  ColoredStream &
+  operator<<(std::ostream::_Myios&(*__pf)(std::ostream::_Myios&));
+#else
+  ColoredStream& operator<<(
+      std::ostream::__ostream_type& (*__pf)(std::ostream::__ostream_type&));
+  ColoredStream&
+      operator<<(std::ostream::__ios_type& (*__pf)(std::ostream::__ios_type&));
+#endif
+  ColoredStream &
+  operator<<(std::ostream::ios_base &(*__pf)(std::ostream::ios_base &));
+
+private:
+  std::ostream &wrapped_;
+  bool supportsColor;
+  const Colors colors;
+};
 } // namespace colored_stream

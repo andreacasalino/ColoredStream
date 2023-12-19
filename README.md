@@ -10,7 +10,7 @@ It is cross-platform and all the functionalities are contained in [**ColoredStre
 
 The ability to show a colored text is made possible by building and printing a **ColoredText** object.
 **ColoredText** extends **std::stringstream** adding the possibility to show colored text.
-Such ability is enabled when passing a **ColoredText** instance to a **std::cout** for printing something into the console. On the opposite, when passing a **ColoredText** instance to another kind of output stream, like for instance a **std::ofstream**, the object behaves like a normal **std::stringstream**, printing normal text.
+Such ability is enabled when passing a **ColoredText** instance to a **std::cout** or a **std::cerr** for printing something into the console. On the opposite, when passing a **ColoredText** instance to another kind of output stream, like for instance a **std::ofstream**, the object behaves like a normal **std::stringstream**, printing normal text.
 
 Three possible color prescriptions can be specified:
  - specify classical colors like **red** or **yellow**
@@ -26,7 +26,7 @@ The kind of color used for specifying the text (R,G,B triplet, 8-bit code, etc..
 
 Still haven't left a **star**? Do it now!! ;).
 
-Using this package is straightforward: you just need to create a **ColoredText** object and then pass it to **std::cout** for print it.
+Using this package is straightforward: you just need to create a **ColoredText** object and then pass it to **std::cout** (or **std::cerr**) for printing it.
 Suppose for example you want to display a red colored 'hello world', all you need to do would be this:
 
 ```cpp
@@ -72,6 +72,22 @@ std::cout << stream << std::endl;
 ```
 
 ![temp](pictures/part04.png)
+
+You can also decide to bind a certain color to a certain concrete **std::ostream** so that everything that will be passed to that stream will be rendered with a certain color. Indeed, you can use **ColoredStream** for this:
+```cpp
+ColoredStream stream{ClassicColor::MAGENTA, std::cerr};
+stream << "All this line was "
+        << "passed to the same "
+        << " ColoredStream";
+
+stream << " ... also this from another line of code" << std::endl;
+```
+
+![temp](pictures/part05.png)
+
+The created stream will be a wrapper of the concrete passed one. Every time something is passed to the wrapper, the prescription about the text and the background color is added and then the content is actually propagated to the concrete stream. 
+
+Check the [samples folder](./samples) for other examples.
 
 ## CMAKE SUPPORT
 

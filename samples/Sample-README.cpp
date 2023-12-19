@@ -24,5 +24,14 @@ int main() {
     std::cout << stream << std::endl;
   }
 
+  {
+    ColoredStream stream{ClassicColor::MAGENTA, std::cerr};
+    stream << "All this line was "
+           << "passed to the same "
+           << " ColoredStream";
+
+    stream << " ... also this from another line of code" << std::endl;
+  }
+
   return EXIT_SUCCESS;
 }
