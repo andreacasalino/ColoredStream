@@ -3,32 +3,32 @@
 #include <stdexcept>
 
 namespace colored_stream {
-const std::string ColoredStream::RESETTER = "\u001b[0m";
+const std::string ColoredText::RESETTER = "\u001b[0m";
 
-const std::string ColoredStream::TEXT_UINT8_PREABLE = "\u001b[38;5;";
-const std::string ColoredStream::BCKGRND_UINT8_PREABLE = "\u001b[48;5;";
+const std::string ColoredText::TEXT_UINT8_PREABLE = "\u001b[38;5;";
+const std::string ColoredText::BCKGRND_UINT8_PREABLE = "\u001b[48;5;";
 
-const std::string ColoredStream::TEXT_UINT24_PREABLE = "\u001b[38;2;";
-const std::string ColoredStream::BCKGRND_UINT24_PREABLE = "\u001b[48;2;";
+const std::string ColoredText::TEXT_UINT24_PREABLE = "\u001b[38;2;";
+const std::string ColoredText::BCKGRND_UINT24_PREABLE = "\u001b[48;2;";
 
-const char ColoredStream::SEPARATOR = ';';
-const char ColoredStream::M_LETTER = 'm';
+const char ColoredText::SEPARATOR = ';';
+const char ColoredText::M_LETTER = 'm';
 
-const std::map<ClassicColor, std::string> ColoredStream::CLASSIC_COLORS_TABLE =
-    {
-        {RED, "\u001b[31;1m"},     {GREEN, "\u001b[32;1m"},
-        {YELLOW, "\u001b[33;1m"},  {BLUE, "\u001b[34;1m"},
-        {MAGENTA, "\u001b[35;1m"}, {CYAN, "\u001b[36;1m"},
-        {WHITE, "\u001b[37;1m"},
+const std::unordered_map<ClassicColor, std::string>
+    ColoredText::CLASSIC_COLORS_TABLE = {
+        {ClassicColor::RED, "\u001b[31;1m"},
+        {ClassicColor::GREEN, "\u001b[32;1m"},
+        {ClassicColor::YELLOW, "\u001b[33;1m"},
+        {ClassicColor::BLUE, "\u001b[34;1m"},
+        {ClassicColor::MAGENTA, "\u001b[35;1m"},
+        {ClassicColor::CYAN, "\u001b[36;1m"},
+        {ClassicColor::WHITE, "\u001b[37;1m"},
 };
 
-ColoredStream::ColoredStream(const Color &text_color) : text(text_color){};
+ColoredText::ColoredText(const Settings &settings)
+    : text(settings.text_), background{settings.background_} {};
 
-void ColoredStream::setBackground(const Color &color) {
-  background.emplace(color);
-};
-
-void ColoredStream::print(std::ostream &stream) const {
+void ColoredText::print(std::ostream &stream) const {
   if (static_cast<const std::ostream *>(&std::cout) == &stream) {
     this->toStream(stream);
     return;
@@ -36,23 +36,24 @@ void ColoredStream::print(std::ostream &stream) const {
   stream << this->str();
 };
 
-std::string ColoredStream::col_str() const {
+std::string ColoredText::col_str() const {
   std::stringstream result;
   this->toStream(result);
   return result.str();
 };
 
-void ColoredStream::toStream(std::ostream &stream) const {
+void ColoredText::toStream(std::ostream &stream) const {
   this->addColorText(stream);
   this->addColorBackground(stream);
   stream << this->str();
   stream << RESETTER;
 }
 
-void ColoredStream::addColorText(std::ostream &stream) const {
+void ColoredText::addColorText(std::ostream &stream) const {
   struct ColorVisitor {
     std::ostream &stream;
 
+    void operator()(const Null &) {}
     void operator()(const ClassicColor &color) {
       auto table_it = CLASSIC_COLORS_TABLE.find(color);
       if (table_it == CLASSIC_COLORS_TABLE.end()) {
@@ -72,16 +73,11 @@ void ColoredStream::addColorText(std::ostream &stream) const {
   std::visit(ColorVisitor{stream}, this->text);
 };
 
-void ColoredStream::addColorBackground(std::ostream &stream) const {
-  if (std::nullopt == this->background) {
-    return;
-  }
+void ColoredText::addColorBackground(std::ostream &stream) const {
   struct ColorVisitor {
     std::ostream &stream;
 
-    void operator()(const ClassicColor &color) {
-      throw std::runtime_error{"Invalid color"};
-    }
+    void operator()(const Null &) {}
     void operator()(const Uint8Color &color) {
       stream << BCKGRND_UINT8_PREABLE << std::to_string(color.code) << M_LETTER;
     }
@@ -91,10 +87,10 @@ void ColoredStream::addColorBackground(std::ostream &stream) const {
              << std::to_string(color.blue) << M_LETTER;
     }
   };
-  std::visit(ColorVisitor{stream}, *this->background);
+  std::visit(ColorVisitor{stream}, this->background);
 };
 
-std::ostream &operator<<(std::ostream &stream, const ColoredStream &subject) {
+std::ostream &operator<<(std::ostream &stream, const ColoredText &subject) {
   subject.print(stream);
   return stream;
 }

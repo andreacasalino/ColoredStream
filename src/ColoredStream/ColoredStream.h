@@ -1,17 +1,17 @@
 #pragma once
 
-#include <map>
 #include <optional>
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <variant>
 
 namespace colored_stream {
 /// context:
 /// https://en.wikipedia.org/wiki/ANSI_escape_code
 
-enum ClassicColor { RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE };
+enum class ClassicColor { RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE };
 
 struct Uint8Color {
   std::uint8_t code;
@@ -23,19 +23,41 @@ struct Uint24Color {
   std::uint8_t blue;
 };
 
-using Color = std::variant<ClassicColor, Uint8Color, Uint24Color>;
+struct Null {};
 
-class ColoredStream : public std::stringstream {
+using ColorText = std::variant<Null, ClassicColor, Uint8Color, Uint24Color>;
+using ColorBackground = std::variant<Null, Uint8Color, Uint24Color>;
+
+struct Settings {
+  Settings() = default;
+
+  Settings &text(const ColorText &col) {
+    text_ = col;
+    return *this;
+  }
+  Settings &background(const ColorBackground &col) {
+    background_ = col;
+    return *this;
+  }
+
+  ColorText text_ = Null{};
+  ColorBackground background_ = Null{};
+};
+
+class ColoredText : public std::stringstream {
 public:
-  ColoredStream(const Color &text_color);
+  ColoredText(const Settings &settings);
 
   template <typename T, typename... Args>
-  ColoredStream(const Color &text_color, const T &element, const Args &...arsg)
-      : ColoredStream(text_color) {
+  ColoredText(const Settings &settings, const T &element, const Args &...arsg)
+      : ColoredText(settings) {
     this->add(element, arsg...);
   }
 
-  void setBackground(const Color &color);
+  // background color assumed to Null
+  template <typename... Args>
+  ColoredText(const ColorText &color, const Args &...arsg)
+      : ColoredText(Settings{}.text(color), arsg...) {}
 
   void print(std::ostream &stream) const;
 
@@ -50,7 +72,8 @@ protected:
   static const char SEPARATOR;
   static const char M_LETTER;
 
-  static const std::map<ClassicColor, std::string> CLASSIC_COLORS_TABLE;
+  static const std::unordered_map<ClassicColor, std::string>
+      CLASSIC_COLORS_TABLE;
 
   static const std::string CUSTOM_COLOR_PREAMBLE;
 
@@ -68,9 +91,9 @@ private:
 
   void addColorBackground(std::ostream &stream) const;
 
-  const Color text;
-  std::optional<const Color> background;
+  const ColorText text;
+  const ColorBackground background;
 };
 
-std::ostream &operator<<(std::ostream &stream, const ColoredStream &subject);
+std::ostream &operator<<(std::ostream &stream, const ColoredText &subject);
 } // namespace colored_stream
